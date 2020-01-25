@@ -1,1 +1,4 @@
 create static homePage. --DONE
+create all other static web page. --DONE
+create a server. --DONE
+create response and request class. --DONE
