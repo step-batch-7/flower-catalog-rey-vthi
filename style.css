@@ -1,0 +1,25 @@
+.subHeading {
+  border-top: 1px solid lightskyblue;
+  border-bottom: 0.5px solid black;
+  color: #f3a718;
+  text-align: right;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+.container {
+  margin: 70px;
+}
+
+.flowerContainer {
+  display: flex;
+}
+
+.imageContainer {
+  width: 800px;
+  height: auto;
+}
+
+.guestAndGifContainer {
+  padding-left: 30px;
+}
