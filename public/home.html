@@ -3,7 +3,13 @@
   <head>
     <title>Flower Catalog</title>
     <link rel="stylesheet" href="style.css" type="text/css" />
-    <script src="../lib/script.js"></script>
+    <script>
+      const hideForOneSec = function() {
+        const wateringCan = document.querySelector('#wateringCan');
+        wateringCan.style.visibility = 'hidden';
+        setTimeout(() => (wateringCan.style.visibility = 'visible'), 1000);
+      };
+    </script>
   </head>
   <body class="container">
     <h1 class="subHeading">Flower Catalog</h1>
