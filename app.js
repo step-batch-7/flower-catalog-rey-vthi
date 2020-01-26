@@ -4,16 +4,6 @@ const CONTENT_TYPES = require('./lib/mime');
 
 const STATIC_FOLDER = `${__dirname}/public`;
 
-const serveStaticFile = req => {
-  const path = `${STATIC_FOLDER}${req.url}`;
-  const stat = fs.existsSync(path) && fs.statSync(path);
-  if (!stat || !stat.isFile()) return new Response();
-  const [, extension] = path.match(/.*\.(.*)$/) || [];
-  const contentType = CONTENT_TYPES[extension];
-  const content = fs.readFileSync(path);
-  return getResponse(content, contentType, 200);
-};
-
 const getResponse = function(content, type, statusCode) {
   const response = new Response();
   response.setHeader('Content-Type', type);
@@ -21,13 +11,6 @@ const getResponse = function(content, type, statusCode) {
   response.statusCode = statusCode;
   response.body = content;
   return response;
-};
-
-const serveGuestBookPage = function() {
-  const commentDetails = getExistingComments();
-  const comments = commentDetails.reduce(addComment, '');
-  const guestBookPage = loadTemplate('./public/GuestBook.html', {comments});
-  return getResponse(guestBookPage, CONTENT_TYPES.html, 200);
 };
 
 const addComment = function(allComments, newComment) {
@@ -71,23 +54,35 @@ const updateCommentsLog = req => {
   fs.writeFileSync('./public/commentsLog.json', comments, 'utf8');
 };
 
+const serveStaticFile = req => {
+  const path = `${STATIC_FOLDER}${req.url}`;
+  const stat = fs.existsSync(path) && fs.statSync(path);
+  if (!stat || !stat.isFile()) return new Response();
+  const [, extension] = path.match(/.*\.(.*)$/) || [];
+  const contentType = CONTENT_TYPES[extension];
+  const content = fs.readFileSync(path);
+  return getResponse(content, contentType, 200);
+};
+
+const serveGuestBookPage = function() {
+  const commentDetails = getExistingComments();
+  const comments = commentDetails.reduce(addComment, '');
+  const guestBookPage = loadTemplate('./public/GuestBook.html', {comments});
+  return getResponse(guestBookPage, CONTENT_TYPES.html, 200);
+};
+
 const serveGuestPage = req => {
   if (req.body.name && req.body.comment) updateCommentsLog(req);
   return serveGuestBookPage(req);
 };
 
 const findHandler = req => {
-  console.log(req.url);
-  if (req.method === 'POST' && req.url === '/updateComment')
-    return serveGuestPage;
-
-  if (req.method === 'GET' && req.url === '/GuestBook.html')
-    return serveGuestPage;
-
   if (req.method === 'GET' && req.url === '/') {
     req.url = '/home.html';
     return serveStaticFile;
   }
+  if (req.url === '/updateComment' || req.url === '/GuestBook.html')
+    return serveGuestPage;
 
   if (req.method === 'GET') return serveStaticFile;
   return () => new Response();
