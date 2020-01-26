@@ -11,8 +11,7 @@ const serveStaticFile = req => {
   const [, extension] = path.match(/.*\.(.*)$/) || [];
   const contentType = CONTENT_TYPES[extension];
   const content = fs.readFileSync(path);
-  const response = getResponse(content, contentType, 200);
-  return response;
+  return getResponse(content, contentType, 200);
 };
 
 const getResponse = function(content, type, statusCode) {
@@ -28,8 +27,7 @@ const serveGuestBookPage = function() {
   const commentDetails = getExistingComments();
   const comments = commentDetails.reduce(addComment, '');
   const guestBookPage = loadTemplate('./public/GuestBook.html', {comments});
-  const response = getResponse(guestBookPage, CONTENT_TYPES.html, 200);
-  return response;
+  return getResponse(guestBookPage, CONTENT_TYPES.html, 200);
 };
 
 const addComment = function(allComments, newComment) {
@@ -44,10 +42,11 @@ const addComment = function(allComments, newComment) {
 };
 
 const getExistingComments = function() {
-  if (!fs.existsSync('./public/commentsLog.json')) {
+  const commentsFilePath = './public/commentsLog.json';
+  if (!fs.existsSync(commentsFilePath)) {
     return [];
   }
-  return JSON.parse(fs.readFileSync('./public/commentsLog.json', 'utf8'));
+  return JSON.parse(fs.readFileSync(commentsFilePath, 'utf8'));
 };
 
 const loadTemplate = function(templateFileName, propertyBag) {
