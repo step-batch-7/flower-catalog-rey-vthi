@@ -2,5 +2,6 @@ create static homePage. --DONE
 create all other static web page. --DONE
 create a server. --DONE
 create response and request class. --DONE
-server should server the homePage. --DONE
+server should server the flowerPages. --DONE
+should navigate from any page to homePage. --DONE
 comments should get updated when the user give comment --DONE
