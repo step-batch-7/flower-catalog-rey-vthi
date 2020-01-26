@@ -1,5 +1,7 @@
 const fs = require('fs');
 const Response = require('./lib/response');
+const loadTemplate = require('./lib/loadTemplate');
+
 const CONTENT_TYPES = require('./lib/mime');
 
 const STATIC_FOLDER = `${__dirname}/public`;
@@ -17,7 +19,8 @@ const addComment = function(allComments, newComment) {
   const newCommentHtml = `<div class="comment">
                             <tr>
                                <td class="bold">${newComment.name}</td>
-                               <td class="small-text">Submitted on: ${newComment.date}</br>
+                               <td class="small-text">
+                               <span>Submitted on:<span> ${newComment.date}</br>
                                ${newComment.comment}</td>
                             </tr>
                           </div>`;
@@ -30,17 +33,6 @@ const getExistingComments = function() {
     return [];
   }
   return JSON.parse(fs.readFileSync(commentsFilePath, 'utf8'));
-};
-
-const loadTemplate = function(templateFileName, propertyBag) {
-  const replaceKeyWithValue = (content, key) => {
-    const pattern = new RegExp(`__${key}__`, 'g');
-    return content.replace(pattern, propertyBag[key]);
-  };
-
-  const content = fs.readFileSync(templateFileName, 'utf8');
-  const keys = Object.keys(propertyBag);
-  return keys.reduce(replaceKeyWithValue, content);
 };
 
 const updateCommentsLog = req => {
