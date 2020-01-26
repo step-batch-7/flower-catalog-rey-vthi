@@ -50,13 +50,13 @@ const getExistingComments = function() {
   return JSON.parse(fs.readFileSync('./public/commentsLog.json', 'utf8'));
 };
 
-const loadTemplate = function(templatePath, propertyBag) {
+const loadTemplate = function(templateFileName, propertyBag) {
   const replaceKeyWithValue = (content, key) => {
     const pattern = new RegExp(`__${key}__`, 'g');
     return content.replace(pattern, propertyBag[key]);
   };
 
-  const content = fs.readFileSync(templatePath, 'utf8');
+  const content = fs.readFileSync(templateFileName, 'utf8');
   const keys = Object.keys(propertyBag);
   return keys.reduce(replaceKeyWithValue, content);
 };
@@ -73,18 +73,23 @@ const updateCommentsLog = req => {
 };
 
 const serveGuestPage = req => {
-  updateCommentsLog(req);
+  if (req.body.name || req.body.comment) updateCommentsLog(req);
   return serveGuestBookPage(req);
 };
 
 const findHandler = req => {
-  if (req.method === 'POST' && req.url === '/updateComment') {
+  console.log(req.url);
+  if (req.method === 'POST' && req.url === '/updateComment')
     return serveGuestPage;
-  }
+
+  if (req.method === 'GET' && req.url === '/GuestBook.html')
+    return serveGuestPage;
+
   if (req.method === 'GET' && req.url === '/') {
     req.url = '/home.html';
     return serveStaticFile;
   }
+
   if (req.method === 'GET') return serveStaticFile;
   return () => new Response();
 };
