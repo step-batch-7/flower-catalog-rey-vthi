@@ -19,7 +19,68 @@ const serveStaticFile = req => {
   return res;
 };
 
+const serveGuestBookPage = function() {
+  const commentDetails = getExistingComments();
+  const comments = commentDetails.reduce(addComment, '');
+  const guestBookPage = loadTemplate('./public/GuestBook.html', {comments});
+  const res = new Response();
+  res.setHeader('Content-Type', CONTENT_TYPES.html);
+  res.setHeader('Content-Length', guestBookPage.length);
+  res.statusCode = 200;
+  res.body = guestBookPage;
+
+  return res;
+};
+
+const addComment = function(allComments, newComment) {
+  const newCommentHtml = `<div class="comment">
+                            <tr>
+                               <td class="bold">${newComment.name}</td>
+                               <td class="small-text">Submitted on: ${newComment.date}</br>
+                               ${newComment.comment}</td>
+                               </tr>
+                               `;
+  return allComments + newCommentHtml;
+};
+
+const getExistingComments = function() {
+  if (!fs.existsSync('./public/commentsLog.json')) {
+    return [];
+  }
+  return JSON.parse(fs.readFileSync('./public/commentsLog.json', 'utf8'));
+};
+
+const loadTemplate = function(templatePath, propertyBag) {
+  const replaceKeyWithValue = (content, key) => {
+    const pattern = new RegExp(`__${key}__`, 'g');
+    return content.replace(pattern, propertyBag[key]);
+  };
+
+  const content = fs.readFileSync(templatePath, 'utf8');
+  const keys = Object.keys(propertyBag);
+  return keys.reduce(replaceKeyWithValue, content);
+};
+
+const updateCommentsLog = req => {
+  const date = new Date().toLocaleString();
+  let comments = getExistingComments();
+
+  const newCommentDetail = {...req.body, date};
+  comments.unshift(newCommentDetail);
+
+  comments = JSON.stringify(comments);
+  fs.writeFileSync('./public/commentsLog.json', comments, 'utf8');
+};
+
+const serveGuestPage = req => {
+  updateCommentsLog(req);
+  return serveGuestBookPage(req);
+};
+
 const findHandler = req => {
+  if (req.method === 'POST' && req.url === '/updateComment') {
+    return serveGuestPage;
+  }
   if (req.method === 'GET' && req.url === '/') {
     req.url = '/home.html';
     return serveStaticFile;

@@ -12,20 +12,25 @@
       </span>
     </div>
     <p class="big-font-size"><b>Leave a Comment</b></p>
-    <form action="./">
-      <label name="name">Name: </label><input type="text" id="name" />
+    <form action="updateComment" method="POST">
+      <label name="name">Name: </label><input type="text" name="name" />
       <br />
       <br />
-      <label name="Comment">Comment: </label
-      ><textarea id="commentsBox"></textarea>
+      <label name="comment">Comment: </label
+      ><textarea name="comment"></textarea>
       <br />
       <br />
-      <input type="submit" placeholder="submit" />
+      <input type="submit" />
     </form>
     <br />
-    <div class="commentContainer">
-      <p class="big-font-size"><b>Comments:</b></p>
-      <p id="comments">__comments__</p>
+    <hr />
+    <span><b>COMMENTS:</b></span>
+    <div class="comments">
+      <table>
+        <th>Author</th>
+        <th>Comment</th>
+        <span>__comments__</span>
+      </table>
     </div>
   </body>
 </html>

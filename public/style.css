@@ -54,3 +54,26 @@
 .commentContainer {
   border-top: 1px solid black;
 }
+
+.date {
+  font-size: small;
+}
+
+.floatOnCorner {
+  display: flex;
+  justify-content: space-between;
+}
+
+.tableRow {
+  border: 1px solid blue;
+}
+
+.small-text {
+  font-size: small;
+  padding-left: 20px;
+  padding-top: 15px;
+}
+.bold {
+  font-weight: bold;
+  padding-top: -30px;
+}
