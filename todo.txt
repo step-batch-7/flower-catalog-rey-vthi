@@ -3,3 +3,4 @@ create all other static web page. --DONE
 create a server. --DONE
 create response and request class. --DONE
 server should server the homePage. --DONE
+comments should get updated when the user give comment --DONE
