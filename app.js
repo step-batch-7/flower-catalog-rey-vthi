@@ -73,7 +73,7 @@ const updateCommentsLog = req => {
 };
 
 const serveGuestPage = req => {
-  if (req.body.name || req.body.comment) updateCommentsLog(req);
+  if (req.body.name && req.body.comment) updateCommentsLog(req);
   return serveGuestBookPage(req);
 };
 
