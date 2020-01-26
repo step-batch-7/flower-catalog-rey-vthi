@@ -11,25 +11,25 @@ const serveStaticFile = req => {
   const [, extension] = path.match(/.*\.(.*)$/) || [];
   const contentType = CONTENT_TYPES[extension];
   const content = fs.readFileSync(path);
-  const res = new Response();
-  res.setHeader('Content-Type', contentType);
-  res.setHeader('Content-Length', content.length);
-  res.statusCode = 200;
-  res.body = content;
-  return res;
+  const response = getResponse(content, contentType, 200);
+  return response;
+};
+
+const getResponse = function(content, type, statusCode) {
+  const response = new Response();
+  response.setHeader('Content-Type', type);
+  response.setHeader('Content-Length', content.length);
+  response.statusCode = statusCode;
+  response.body = content;
+  return response;
 };
 
 const serveGuestBookPage = function() {
   const commentDetails = getExistingComments();
   const comments = commentDetails.reduce(addComment, '');
   const guestBookPage = loadTemplate('./public/GuestBook.html', {comments});
-  const res = new Response();
-  res.setHeader('Content-Type', CONTENT_TYPES.html);
-  res.setHeader('Content-Length', guestBookPage.length);
-  res.statusCode = 200;
-  res.body = guestBookPage;
-
-  return res;
+  const response = getResponse(guestBookPage, CONTENT_TYPES.html, 200);
+  return response;
 };
 
 const addComment = function(allComments, newComment) {
@@ -38,8 +38,8 @@ const addComment = function(allComments, newComment) {
                                <td class="bold">${newComment.name}</td>
                                <td class="small-text">Submitted on: ${newComment.date}</br>
                                ${newComment.comment}</td>
-                               </tr>
-                               `;
+                            </tr>
+                          </div>`;
   return allComments + newCommentHtml;
 };
 
