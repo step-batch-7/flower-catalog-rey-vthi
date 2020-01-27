@@ -35,11 +35,19 @@ const getExistingComments = function() {
   return JSON.parse(fs.readFileSync(commentsFilePath, 'utf8'));
 };
 
+const getFormattedText = function(text) {
+  let txt = text.replace(/\+/g, ' ');
+  txt = txt.replace(/%0D%0A/g, '<br>');
+  return txt;
+};
+
 const updateCommentsLog = req => {
   const date = new Date().toLocaleString();
   let comments = getExistingComments();
 
-  const newCommentDetail = {...req.body, date};
+  const comment = getFormattedText(req.body.comment);
+  const name = getFormattedText(req.body.name);
+  const newCommentDetail = {date, comment, name};
   comments.unshift(newCommentDetail);
 
   comments = JSON.stringify(comments);
