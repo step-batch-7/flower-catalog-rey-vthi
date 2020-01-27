@@ -15,15 +15,30 @@ const getResponse = function(content, type, statusCode) {
   return response;
 };
 
+const getFormattedText = function(text) {
+  let txt = text.replace(/\+/g, ' ');
+  txt = txt.replace(/%0D%0A/g, '\n');
+  return txt;
+};
+
+const getFormattedHtml = function(text) {
+  let txt = text.replace(/\s/g, '&nbsp;');
+  txt = txt.replace(/\n/g, '<br>');
+  return txt;
+};
+
 const addComment = function(allComments, newComment) {
-  const newCommentHtml = `<div class="comment">
-                            <tr>
-                               <td class="bold">${newComment.name}</td>
-                               <td class="small-text">
-                               <span>Submitted on:<span> ${newComment.date}</br>
-                               ${newComment.comment}</td>
-                            </tr>
-                          </div>`;
+  const comment = getFormattedHtml(newComment.comment);
+  const name = getFormattedHtml(newComment.name);
+
+  const newCommentHtml = `
+<div class="comment">
+  <tr>
+    <td class="bold">${name}</td>
+    <td class="small-text">
+    <span>Submitted on:<span> ${newComment.date}</br>${comment}</td>
+  </tr>
+</div>`;
   return allComments + newCommentHtml;
 };
 
@@ -35,19 +50,14 @@ const getExistingComments = function() {
   return JSON.parse(fs.readFileSync(commentsFilePath, 'utf8'));
 };
 
-const getFormattedText = function(text) {
-  let txt = text.replace(/\+/g, ' ');
-  txt = txt.replace(/%0D%0A/g, '<br>');
-  return txt;
-};
-
 const updateCommentsLog = req => {
-  const date = new Date().toLocaleString();
+  const date = new Date();
   let comments = getExistingComments();
 
   const comment = getFormattedText(req.body.comment);
   const name = getFormattedText(req.body.name);
-  const newCommentDetail = {date, comment, name};
+
+  const newCommentDetail = {date, name, comment};
   comments.unshift(newCommentDetail);
 
   comments = JSON.stringify(comments);
