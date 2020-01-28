@@ -51,10 +51,22 @@ const updateCommentsLog = function(newName, newComment) {
   fs.writeFileSync('./public/commentsLog.json', comments, 'utf8');
 };
 
+const notFound = function(req, res) {
+  const html = `<html>
+  <head>
+  <title>Not found</title>
+  </head>
+  <body>
+  <p>File Not Found</p>
+  </body>
+  </html>`;
+  sendResponse(res, html, 'text/html', 404);
+};
+
 const serveStaticFile = function(req, res) {
   const path = `${STATIC_FOLDER}${req.url}`;
   const stat = fs.existsSync(path) && fs.statSync(path);
-  if (!stat || !stat.isFile()) return new Response();
+  if (!stat || !stat.isFile()) return notFound(req, res);
   const [, extension] = path.match(/.*\.(.*)$/) || [];
   const contentType = CONTENT_TYPES[extension];
   const content = fs.readFileSync(path);
