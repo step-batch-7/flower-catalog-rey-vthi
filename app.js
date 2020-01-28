@@ -1,19 +1,9 @@
 const fs = require('fs');
-const Response = require('./lib/response');
+const url = require('url');
 const loadTemplate = require('./lib/loadTemplate');
-
 const CONTENT_TYPES = require('./lib/mime');
 
 const STATIC_FOLDER = `${__dirname}/public`;
-
-const getResponse = function(content, type, statusCode) {
-  const response = new Response();
-  response.setHeader('Content-Type', type);
-  response.setHeader('Content-Length', content.length);
-  response.statusCode = statusCode;
-  response.body = content;
-  return response;
-};
 
 const getFormattedText = function(text) {
   let txt = text.replace(/\+/g, ' ');
@@ -22,7 +12,7 @@ const getFormattedText = function(text) {
 };
 
 const getFormattedHtml = function(text) {
-  let txt = text.replace(/\s/g, '&nbsp;');
+  let txt = text.replace(/ /g, '&nbsp;');
   txt = txt.replace(/\n/g, '<br>');
   return txt;
 };
@@ -50,40 +40,53 @@ const getExistingComments = function() {
   return JSON.parse(fs.readFileSync(commentsFilePath, 'utf8'));
 };
 
-const updateCommentsLog = req => {
+const updateCommentsLog = function(newName, newComment) {
   const date = new Date();
   let comments = getExistingComments();
-
-  const comment = getFormattedText(req.body.comment);
-  const name = getFormattedText(req.body.name);
-
+  const comment = getFormattedText(newComment);
+  const name = getFormattedText(newName);
   const newCommentDetail = {date, name, comment};
   comments.unshift(newCommentDetail);
-
   comments = JSON.stringify(comments);
   fs.writeFileSync('./public/commentsLog.json', comments, 'utf8');
 };
 
-const serveStaticFile = req => {
+const serveStaticFile = function(req, res) {
   const path = `${STATIC_FOLDER}${req.url}`;
   const stat = fs.existsSync(path) && fs.statSync(path);
   if (!stat || !stat.isFile()) return new Response();
   const [, extension] = path.match(/.*\.(.*)$/) || [];
   const contentType = CONTENT_TYPES[extension];
   const content = fs.readFileSync(path);
-  return getResponse(content, contentType, 200);
+  sendResponse(res, content, contentType, 200);
+};
+const sendResponse = function(res, content, contentType, statusCode) {
+  res.setHeader('Content-Type', contentType);
+  res.writeHead(statusCode);
+  res.end(content);
 };
 
-const serveGuestBookPage = function() {
+const serveGuestBookPage = function(res) {
   const commentDetails = getExistingComments();
   const comments = commentDetails.reduce(addComment, '');
   const guestBookPage = loadTemplate('./public/GuestBook.html', {comments});
-  return getResponse(guestBookPage, CONTENT_TYPES.html, 200);
+  sendResponse(res, guestBookPage, CONTENT_TYPES.html, 200);
 };
 
-const serveGuestPage = req => {
-  if (req.body.name && req.body.comment) updateCommentsLog(req);
-  return serveGuestBookPage(req);
+const extract = function(text) {
+  return ({name, comment} = url.parse(`?${text}`, true).query);
+};
+
+const serveGuestPage = function(req, res) {
+  let userComment = '';
+  req.on('data', chunk => (userComment += chunk));
+  req.on('end', () => {
+    if (req.method === 'POST') {
+      const {name, comment} = extract(userComment);
+      updateCommentsLog(name, comment);
+    }
+    serveGuestBookPage(res);
+  });
 };
 
 const findHandler = req => {
@@ -91,16 +94,14 @@ const findHandler = req => {
     req.url = '/home.html';
     return serveStaticFile;
   }
-  if (req.url === '/updateComment' || req.url === '/GuestBook.html')
-    return serveGuestPage;
-
+  if (req.url === '/GuestBook.html') return serveGuestPage;
   if (req.method === 'GET') return serveStaticFile;
   return () => new Response();
 };
 
-const processRequest = req => {
+const processRequest = function(req, res) {
   const handler = findHandler(req);
-  return handler(req);
+  return handler(req, res);
 };
 
 module.exports = {processRequest};
