@@ -65,6 +65,7 @@ const serveStaticFile = function(req, res, next) {
   const content = fs.readFileSync(path);
   sendResponse(res, content, contentType, 200);
 };
+
 const sendResponse = function(res, content, contentType, statusCode) {
   res.setHeader('Content-Type', contentType);
   res.writeHead(statusCode);
@@ -144,16 +145,3 @@ app.post('', notFound);
 app.use(methodNotAllowed);
 
 module.exports = {app};
-
-// const findHandler = req => {
-//   if (req.url === '/GuestBook.html') return serveGuestPage;
-//   if (req.method === 'GET') return serveStaticFile;
-//   return () => new Response();
-// };
-
-// const processRequest = function(req, res) {
-//   const handler = findHandler(req);
-//   return handler(req, res);
-// };
-
-// module.exports = {processRequest};
