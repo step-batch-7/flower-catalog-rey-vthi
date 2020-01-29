@@ -9,7 +9,8 @@ const STATIC_FOLDER = `${__dirname}/public`;
 const statusCode = {
   FILE_NOT_FOUND: 404,
   OK: 200,
-  NOT_ALLOWED: 400
+  NOT_ALLOWED: 400,
+  REDIRECT: 301
 };
 
 const getFormattedText = function(text) {
@@ -95,10 +96,17 @@ const serveGuestBookPage = function(req, res, next) {
   sendResponse(res, guestBookPage, CONTENT_TYPES.html, statusCode.OK);
 };
 
+const redirectTo = function(res, path) {
+  res.setHeader('location', path);
+  res.writeHead(statusCode.REDIRECT);
+  res.end();
+};
+
 const serveGuestPage = function(req, res, next) {
   if (req.body) {
     const {name, comment} = url.parse(`?${req.body}`, true).query;
     updateCommentsLog(name, comment);
+    return redirectTo(res, 'GuestBook.html');
   }
   serveGuestBookPage(req, res, next);
 };
