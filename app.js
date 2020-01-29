@@ -52,21 +52,14 @@ const updateCommentsLog = function(newName, newComment) {
 };
 
 const notFound = function(req, res) {
-  const html = `<html>
-  <head>
-  <title>Not found</title>
-  </head>
-  <body>
-  <p>File Not Found</p>
-  </body>
-  </html>`;
-  sendResponse(res, html, 'text/html', 404);
+  sendResponse(res, '404 File not found', 'text/html', 404);
 };
 
-const serveStaticFile = function(req, res) {
-  const path = `${STATIC_FOLDER}${req.url}`;
+const serveStaticFile = function(req, res, next) {
+  let path = STATIC_FOLDER;
+  path += req.url == '/' ? `/home.html` : `${req.url}`;
   const stat = fs.existsSync(path) && fs.statSync(path);
-  if (!stat || !stat.isFile()) return notFound(req, res);
+  if (!stat || !stat.isFile()) return next();
   const [, extension] = path.match(/.*\.(.*)$/) || [];
   const contentType = CONTENT_TYPES[extension];
   const content = fs.readFileSync(path);
@@ -85,35 +78,82 @@ const serveGuestBookPage = function(res) {
   sendResponse(res, guestBookPage, CONTENT_TYPES.html, 200);
 };
 
-const extract = function(text) {
-  return ({name, comment} = url.parse(`?${text}`, true).query);
+const serveGuestPage = function(req, res) {
+  if (req.body) {
+    const {name, comment} = url.parse(`?${req.body}`, true).query;
+    updateCommentsLog(name, comment);
+  }
+  serveGuestBookPage(res);
 };
 
-const serveGuestPage = function(req, res) {
-  let userComment = '';
-  req.on('data', chunk => (userComment += chunk));
+const methodNotAllowed = function(req, res) {
+  res.writeHead(400, 'Method Not Allowed');
+  res.end();
+};
+
+const readBody = function(req, res, next) {
+  let data = '';
+  req.on('data', chunk => (data += chunk));
   req.on('end', () => {
-    if (req.method === 'POST') {
-      const {name, comment} = extract(userComment);
-      updateCommentsLog(name, comment);
-    }
-    serveGuestBookPage(res);
+    req.body = data;
+    next();
   });
 };
 
-const findHandler = req => {
-  if (req.method === 'GET' && req.url === '/') {
-    req.url = '/home.html';
-    return serveStaticFile;
+class App {
+  constructor() {
+    this.routes = [];
   }
-  if (req.url === '/GuestBook.html') return serveGuestPage;
-  if (req.method === 'GET') return serveStaticFile;
-  return () => new Response();
+  get(path, handler) {
+    this.routes.push({path, handler, method: 'GET'});
+  }
+  post(path, handler) {
+    this.routes.push({path, handler, method: 'POST'});
+  }
+  use(middleware) {
+    this.routes.push({handler: middleware});
+  }
+  serve(req, res) {
+    console.log('Request: ', req.url, req.method);
+    const matchingHandlers = this.routes.filter(route =>
+      matchRoute(route, req)
+    );
+    const next = function() {
+      if (matchingHandlers.length === 0) return;
+      const router = matchingHandlers.shift();
+      router.handler(req, res, next);
+    };
+    next();
+  }
+}
+
+const matchRoute = function(route, req) {
+  if (route.method)
+    return req.method == route.method && req.url.match(route.path);
+  return true;
 };
 
-const processRequest = function(req, res) {
-  const handler = findHandler(req);
-  return handler(req, res);
-};
+const app = new App();
 
-module.exports = {processRequest};
+app.use(readBody);
+app.get('/GuestBook.html', serveGuestPage);
+app.get('', serveStaticFile);
+app.post('/GuestBook.html', serveGuestPage);
+app.get('', notFound);
+app.post('', notFound);
+app.use(methodNotAllowed);
+
+module.exports = {app};
+
+// const findHandler = req => {
+//   if (req.url === '/GuestBook.html') return serveGuestPage;
+//   if (req.method === 'GET') return serveStaticFile;
+//   return () => new Response();
+// };
+
+// const processRequest = function(req, res) {
+//   const handler = findHandler(req);
+//   return handler(req, res);
+// };
+
+// module.exports = {processRequest};

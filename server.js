@@ -1,8 +1,9 @@
 const http = require('http');
-const {processRequest} = require('./app');
+const {app} = require('./app');
+// const {processRequest} = require('./app');
 
 const main = (port = 4000) => {
-  const server = new http.Server(processRequest);
+  const server = new http.Server(app.serve.bind(app));
 
   server.listen(port, () => {
     console.warn('started listening', server.address());
