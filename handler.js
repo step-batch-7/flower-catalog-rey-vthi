@@ -114,7 +114,7 @@ class App {
   use(middleware) {
     this.routes.push({handler: middleware});
   }
-  serve(req, res) {
+  processRequest(req, res) {
     console.log('Request: ', req.url, req.method);
     const matchingHandlers = this.routes.filter(route =>
       matchRoute(route, req)
