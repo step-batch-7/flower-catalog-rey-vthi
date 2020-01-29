@@ -6,16 +6,20 @@ const CONTENT_TYPES = require('./lib/mime');
 
 const STATIC_FOLDER = `${__dirname}/public`;
 
+const statusCode = {
+  FILE_NOT_FOUND: 404,
+  OK: 200,
+  NOT_ALLOWED: 400
+};
+
 const getFormattedText = function(text) {
-  let txt = text.replace(/\+/g, ' ');
-  txt = txt.replace(/%0D%0A/g, '\n');
-  return txt;
+  const txt = text.replace(/\+/g, ' ');
+  return txt.replace(/%0D%0A/g, '\n');
 };
 
 const getFormattedHtml = function(text) {
-  let txt = text.replace(/ /g, '&nbsp;');
-  txt = txt.replace(/\n/g, '<br>');
-  return txt;
+  const txt = text.replace(/ /g, '&nbsp;');
+  return txt.replace(/\n/g, '<br>');
 };
 
 const addComment = function(allComments, newComment) {
@@ -53,18 +57,25 @@ const updateCommentsLog = function(newName, newComment) {
 };
 
 const notFound = function(req, res) {
-  sendResponse(res, '404 File not found', 'text/html', 404);
+  const errorMsg = '404 File not found';
+  sendResponse(res, errorMsg, 'text/html', statusCode.FILE_NOT_FOUND);
+};
+
+const isFileNotExist = function(path) {
+  const stat = fs.existsSync(path) && fs.statSync(path);
+  return !stat || !stat.isFile();
 };
 
 const serveStaticFile = function(req, res, next) {
   let path = STATIC_FOLDER;
-  path += req.url == '/' ? `/home.html` : `${req.url}`;
-  const stat = fs.existsSync(path) && fs.statSync(path);
-  if (!stat || !stat.isFile()) return next();
+  path += req.url === '/' ? '/home.html' : `${req.url}`;
+  if (isFileNotExist(path)) {
+    return next();
+  }
   const [, extension] = path.match(/.*\.(.*)$/) || [];
   const contentType = CONTENT_TYPES[extension];
   const content = fs.readFileSync(path);
-  sendResponse(res, content, contentType, 200);
+  sendResponse(res, content, contentType, statusCode.OK);
 };
 
 const sendResponse = function(res, content, contentType, statusCode) {
@@ -73,35 +84,40 @@ const sendResponse = function(res, content, contentType, statusCode) {
   res.end(content);
 };
 
-const serveGuestBookPage = function(res) {
+const serveGuestBookPage = function(req, res, next) {
+  const guestBookPagePath = `./public${req.url}`;
+  if (isFileNotExist(guestBookPagePath)) {
+    return next();
+  }
   const commentDetails = getExistingComments();
   const comments = commentDetails.reduce(addComment, '');
-  const guestBookPage = loadTemplate('./public/GuestBook.html', {comments});
-  sendResponse(res, guestBookPage, CONTENT_TYPES.html, 200);
+  const guestBookPage = loadTemplate(`./public${req.url}`, {comments});
+  sendResponse(res, guestBookPage, CONTENT_TYPES.html, statusCode.OK);
 };
 
-const serveGuestPage = function(req, res) {
+const serveGuestPage = function(req, res, next) {
   if (req.body) {
     const {name, comment} = url.parse(`?${req.body}`, true).query;
     updateCommentsLog(name, comment);
   }
-  serveGuestBookPage(res);
+  serveGuestBookPage(req, res, next);
 };
 
 const methodNotAllowed = function(req, res) {
-  res.writeHead(400, 'Method Not Allowed');
+  res.writeHead(statusCode.NOT_ALLOWED, 'Method Not Allowed');
   res.end();
 };
 
 const readBody = function(req, res, next) {
   let data = '';
-  req.on('data', chunk => (data += chunk));
+  req.on('data', chunk => {
+    data += chunk;
+  });
   req.on('end', () => {
     req.body = data;
     next();
   });
 };
-
 
 const app = new App();
 

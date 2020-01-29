@@ -1,14 +1,17 @@
 const http = require('http');
+const {stdout} = process;
 const {app} = require('./handler.js');
-
-const main = (port = 4000) => {
+const DEFAULT_PORT_NUMBER = 4000;
+const main = (port = DEFAULT_PORT_NUMBER) => {
   const server = new http.Server(app.processRequest.bind(app));
 
   server.listen(port, () => {
-    console.warn('started listening', server.address());
+    stdout.write('started listening');
   });
   server.on('error', err => {
-    console.log('server error', err);
+    stdout.write('server error', err);
   });
 };
-main(process.argv[2]);
+
+const [, , userInPortNum] = process.argv;
+main(userInPortNum);

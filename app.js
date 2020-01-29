@@ -12,12 +12,15 @@ class App {
     this.routes.push({handler: middleware});
   }
   processRequest(req, res) {
-    console.log('Request: ', req.url, req.method);
+    process.stdout.write(`Request: ${req.url} ${req.method}\n`);
     const matchingHandlers = this.routes.filter(route =>
       matchRoute(route, req)
     );
     const next = function() {
-      if (matchingHandlers.length === 0) return;
+      const zero = 0;
+      if (matchingHandlers.length === zero) {
+        return;
+      }
       const router = matchingHandlers.shift();
       router.handler(req, res, next);
     };
@@ -26,8 +29,9 @@ class App {
 }
 
 const matchRoute = function(route, req) {
-  if (route.method)
-    return req.method == route.method && req.url.match(route.path);
+  if (route.method) {
+    return req.method === route.method && req.url.match(route.path);
+  }
   return true;
 };
 
