@@ -28,13 +28,13 @@ const addComment = function(allComments, newComment) {
   const name = getFormattedHtml(newComment.name);
 
   const newCommentHtml = `
-<div class="comment">
-  <tr>
-    <td class="bold">${name}</td>
-    <td class="small-text">
-    <span>Submitted on:<span> ${newComment.date}</br>${comment}</td>
-  </tr>
-</div>`;
+  <div class="comment">
+    <tr>
+      <td class="bold">${name}</td>
+      <td class="small-text">
+      <span>Submitted on:<span> ${newComment.date}</br>${comment}</td>
+    </tr>
+  </div>`;
   return allComments + newCommentHtml;
 };
 
@@ -103,12 +103,13 @@ const redirectTo = function(res, path) {
 };
 
 const serveGuestPage = function(req, res, next) {
-  if (req.body) {
-    const {name, comment} = url.parse(`?${req.body}`, true).query;
-    updateCommentsLog(name, comment);
-    return redirectTo(res, 'GuestBook.html');
-  }
   serveGuestBookPage(req, res, next);
+};
+
+const saveAndRedirect = function(req, res) {
+  const {name, comment} = url.parse(`?${req.body}`, true).query;
+  updateCommentsLog(name, comment);
+  redirectTo(res, 'GuestBook.html');
 };
 
 const methodNotAllowed = function(req, res) {
@@ -132,7 +133,7 @@ const app = new App();
 app.use(readBody);
 app.get('/GuestBook.html', serveGuestPage);
 app.get('', serveStaticFile);
-app.post('/GuestBook.html', serveGuestPage);
+app.post('/saveComment.html', saveAndRedirect);
 app.get('', notFound);
 app.post('', notFound);
 app.use(methodNotAllowed);
