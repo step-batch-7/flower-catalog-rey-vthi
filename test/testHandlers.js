@@ -1,12 +1,21 @@
 const request = require('supertest');
 const {app} = require('./../lib/handler.js');
 
-describe('GET method', function() {
+describe('GET / method', function() {
   it('should give home page, when the url is /', function(done) {
     request(app.processRequest.bind(app))
       .get('/')
       .expect(200, done)
       .expect('Content-Type', 'text/html');
+  });
+});
+
+describe('GET gif', function() {
+  it('should give gif of the home page', function(done) {
+    request(app.processRequest.bind(app))
+      .get('/images/animated-flower-image-0021.gif')
+      .expect(200, done)
+      .expect('Content-Type', 'image/gif');
   });
 });
 
@@ -48,11 +57,31 @@ describe('GET Not found', function() {
   });
 });
 
-describe('PUR Not allowed method', function() {
+describe('PUT Not allowed method', function() {
   it('should give not found page', function(done) {
     request(app.processRequest.bind(app))
       .put('/')
       .expect(405, done)
       .expect(/Method Not Allowed/);
+  });
+});
+
+describe('GET Abeliophyllum.html File', function() {
+  it('should give Abeliophyllum page', function(done) {
+    request(app.processRequest.bind(app))
+      .get('/Abeliophyllum.html')
+      .expect(200, done)
+      .expect('Content-Type', 'text/html')
+      .expect(/Abeliophyllum/);
+  });
+});
+
+describe('GET Ageratum.html File', function() {
+  it('should give Ageratum page', function(done) {
+    request(app.processRequest.bind(app))
+      .get('/Ageratum.html')
+      .expect(200, done)
+      .expect('Content-Type', 'text/html')
+      .expect(/Ageratum/);
   });
 });
