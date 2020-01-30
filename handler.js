@@ -3,15 +3,8 @@ const url = require('url');
 const {App} = require('./app.js');
 const loadTemplate = require('./lib/loadTemplate');
 const CONTENT_TYPES = require('./lib/mime');
-
+const statusCode = require('./lib/statusCode');
 const STATIC_FOLDER = `${__dirname}/public`;
-
-const statusCode = {
-  FILE_NOT_FOUND: 404,
-  OK: 200,
-  NOT_ALLOWED: 405,
-  REDIRECT: 301
-};
 
 const getFormattedText = function(text) {
   const replaceSpecialChar = function(txt) {
