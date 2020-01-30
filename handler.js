@@ -14,25 +14,31 @@ const statusCode = {
 };
 
 const getFormattedText = function(text) {
-  const txt = text.replace(/\+/g, ' ');
-  return txt.replace(/%0D%0A/g, '\n');
+  const replaceSpecialChar = function(txt) {
+    const text = txt.replace(/\+/g, ' ');
+    return text.replace(/%0D%0A/g, '\n');
+  };
+  const [name, comment] = text.map(replaceSpecialChar);
+  return [name, comment];
 };
 
 const getFormattedHtml = function(text) {
-  const txt = text.replace(/ /g, '&nbsp;');
-  return txt.replace(/\n/g, '<br>');
+  const replaceSpaceToHtmlTag = function(text) {
+    const txt = text.replace(/ /g, '&nbsp;');
+    return txt.replace(/\n/g, '<br>');
+  };
+  const [name, comment] = text.map(replaceSpaceToHtmlTag);
+  return [name, comment];
 };
 
-const addComment = function(allComments, newComment) {
-  const comment = getFormattedHtml(newComment.comment);
-  const name = getFormattedHtml(newComment.name);
-
+const addComment = function(allComments, newLog) {
+  const [name, comment] = getFormattedHtml([newLog.name, newLog.comment]);
   const newCommentHtml = `
   <div class="comment">
     <tr>
       <td class="bold">${name}</td>
       <td class="small-text">
-      <span>Submitted on:<span> ${newComment.date}</br>${comment}</td>
+      <span>Submitted on:<span> ${newLog.date}</br>${comment}</td>
     </tr>
   </div>`;
   return allComments + newCommentHtml;
@@ -49,8 +55,7 @@ const getExistingComments = function() {
 const updateCommentsLog = function(newName, newComment) {
   const date = new Date();
   let comments = getExistingComments();
-  const comment = getFormattedText(newComment);
-  const name = getFormattedText(newName);
+  const [name, comment] = getFormattedText([newName, newComment]);
   const newCommentDetail = {date, name, comment};
   comments.unshift(newCommentDetail);
   comments = JSON.stringify(comments);
