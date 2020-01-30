@@ -7,7 +7,7 @@
     "lib": "lib"
   },
   "scripts": {
-    "test": "npx eslint server.js app.js handler.js",
+    "test": "mocha",
     "start": "node server.js"
   },
   "repository": {
@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/step-batch-7/flower-catalog-rey-vthi#readme",
   "devDependencies": {
-    "eslint": "^6.8.0"
+    "eslint": "^6.8.0",
+    "supertest": "^4.0.2"
   }
 }
