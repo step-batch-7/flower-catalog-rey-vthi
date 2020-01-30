@@ -1,6 +1,6 @@
 const http = require('http');
 const {stdout} = process;
-const {app} = require('./handler.js');
+const {app} = require('./lib/handler.js');
 const DEFAULT_PORT_NUMBER = 4000;
 const main = (port = DEFAULT_PORT_NUMBER) => {
   const server = new http.Server(app.processRequest.bind(app));
