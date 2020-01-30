@@ -9,7 +9,7 @@ const STATIC_FOLDER = `${__dirname}/public`;
 const statusCode = {
   FILE_NOT_FOUND: 404,
   OK: 200,
-  NOT_ALLOWED: 400,
+  NOT_ALLOWED: 405,
   REDIRECT: 301
 };
 
@@ -45,7 +45,7 @@ const addComment = function(allComments, newLog) {
 };
 
 const getExistingComments = function() {
-  const commentsFilePath = './public/commentsLog.json';
+  const commentsFilePath = './public/../data/commentsLog.json';
   if (!fs.existsSync(commentsFilePath)) {
     return [];
   }
@@ -59,7 +59,7 @@ const updateCommentsLog = function(newName, newComment) {
   const newCommentDetail = {date, name, comment};
   comments.unshift(newCommentDetail);
   comments = JSON.stringify(comments);
-  fs.writeFileSync('./public/commentsLog.json', comments, 'utf8');
+  fs.writeFileSync('./public/../data/commentsLog.json', comments, 'utf8');
 };
 
 const notFound = function(req, res) {
@@ -109,10 +109,6 @@ const redirectTo = function(res, path) {
   res.end();
 };
 
-const serveGuestPage = function(req, res, next) {
-  serveGuestBookPage(req, res, next);
-};
-
 const saveAndRedirect = function(req, res) {
   const {name, comment} = url.parse(`?${req.body}`, true).query;
   updateCommentsLog(name, comment);
@@ -121,7 +117,7 @@ const saveAndRedirect = function(req, res) {
 
 const methodNotAllowed = function(req, res) {
   res.writeHead(statusCode.NOT_ALLOWED, 'Method Not Allowed');
-  res.end();
+  res.end('Method Not Allowed');
 };
 
 const readBody = function(req, res, next) {
@@ -138,7 +134,7 @@ const readBody = function(req, res, next) {
 const app = new App();
 
 app.use(readBody);
-app.get('/GuestBook.html', serveGuestPage);
+app.get('/GuestBook.html', serveGuestBookPage);
 app.get('', serveStaticFile);
 app.post('/saveComment.html', saveAndRedirect);
 app.get('', notFound);
