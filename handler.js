@@ -64,7 +64,9 @@ const updateCommentsLog = function(newName, newComment) {
 
 const notFound = function(req, res) {
   const errorMsg = '404 File not found';
-  sendResponse(res, errorMsg, 'text/html', statusCode.FILE_NOT_FOUND);
+  res.setHeader('Content-Type', 'text/html');
+  res.writeHead(statusCode.FILE_NOT_FOUND);
+  res.end(errorMsg);
 };
 
 const isFileNotExist = function(path) {
@@ -79,14 +81,9 @@ const serveStaticFile = function(req, res, next) {
     return next();
   }
   const [, extension] = path.match(/.*\.(.*)$/) || [];
-  const contentType = CONTENT_TYPES[extension];
   const content = fs.readFileSync(path);
-  sendResponse(res, content, contentType, statusCode.OK);
-};
-
-const sendResponse = function(res, content, contentType, statusCode) {
-  res.setHeader('Content-Type', contentType);
-  res.writeHead(statusCode);
+  res.setHeader('Content-Type', CONTENT_TYPES[extension]);
+  res.writeHead(statusCode.OK);
   res.end(content);
 };
 
@@ -100,7 +97,9 @@ const serveGuestBookPage = function(req, res, next) {
   const guestBook = loadTemplate(guestBookPath, {
     comments
   });
-  sendResponse(res, guestBook, CONTENT_TYPES.html, statusCode.OK);
+  res.setHeader('Content-Type', CONTENT_TYPES.html);
+  res.writeHead(statusCode.OK);
+  res.end(guestBook);
 };
 
 const redirectTo = function(res, path) {
