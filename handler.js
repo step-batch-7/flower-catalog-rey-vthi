@@ -102,16 +102,12 @@ const serveGuestBookPage = function(req, res, next) {
   res.end(guestBook);
 };
 
-const redirectTo = function(res, path) {
-  res.setHeader('location', path);
-  res.writeHead(statusCode.REDIRECT);
-  res.end();
-};
-
 const saveAndRedirect = function(req, res) {
   const {name, comment} = url.parse(`?${req.body}`, true).query;
   updateCommentsLog(name, comment);
-  redirectTo(res, 'GuestBook.html');
+  res.setHeader('location', 'GuestBook.html');
+  res.writeHead(statusCode.REDIRECT);
+  res.end();
 };
 
 const methodNotAllowed = function(req, res) {
