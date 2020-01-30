@@ -91,14 +91,16 @@ const sendResponse = function(res, content, contentType, statusCode) {
 };
 
 const serveGuestBookPage = function(req, res, next) {
-  const guestBookPagePath = `./public${req.url}`;
-  if (isFileNotExist(guestBookPagePath)) {
+  const guestBookPath = `./public/templates${req.url}`;
+  if (isFileNotExist(guestBookPath)) {
     return next();
   }
   const commentDetails = getExistingComments();
   const comments = commentDetails.reduce(addComment, '');
-  const guestBookPage = loadTemplate(`./public${req.url}`, {comments});
-  sendResponse(res, guestBookPage, CONTENT_TYPES.html, statusCode.OK);
+  const guestBook = loadTemplate(guestBookPath, {
+    comments
+  });
+  sendResponse(res, guestBook, CONTENT_TYPES.html, statusCode.OK);
 };
 
 const redirectTo = function(res, path) {
