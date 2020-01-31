@@ -69,3 +69,11 @@ describe('PUT Not allowed method', function() {
       .expect(/Method Not Allowed/);
   });
 });
+
+describe('GET Not found page', function() {
+  it('should give not found page', function(done) {
+    request(app.processRequest.bind(app))
+      .get('/badFile')
+      .expect(404, done);
+  });
+});
