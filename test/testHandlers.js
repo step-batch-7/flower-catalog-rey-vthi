@@ -74,6 +74,7 @@ describe('GET Not found page', function() {
   it('should give not found page', function(done) {
     request(app.processRequest.bind(app))
       .get('/badFile')
-      .expect(404, done);
+      .expect(404, done)
+      .expect('404 File not found');
   });
 });
