@@ -22,6 +22,7 @@
   "homepage": "https://github.com/step-batch-7/flower-catalog-rey-vthi#readme",
   "devDependencies": {
     "eslint": "^6.8.0",
+    "sinon": "^8.1.1",
     "supertest": "^4.0.2"
   }
 }

@@ -1,80 +1,106 @@
 const request = require('supertest');
-const {app} = require('./../lib/handler.js');
+const sinon = require('sinon');
+const fs = require('fs');
+const {app} = require('../lib/handler.js');
 
-describe('GET / method', function() {
-  it('should give home page, when the url is /', function(done) {
+describe('GET method', () => {
+  it('should give the home page when the url is /', done => {
     request(app.processRequest.bind(app))
       .get('/')
+      .expect('Content-Type', 'text/html')
       .expect(200, done)
-      .expect('Content-Type', 'text/html');
+      .expect(/Flower Catalog/);
   });
-  it('should give gif of the home page', function(done) {
-    request(app.processRequest.bind(app))
-      .get('/images/animated-flower-image-0021.gif')
-      .expect(200, done)
-      .expect('Content-Type', 'image/gif');
-  });
-  it('should load style page ', function(done) {
-    request(app.processRequest.bind(app))
-      .get('/style.css')
-      .expect(200, done)
-      .expect('Content-Type', 'text/css');
-  });
-  it('should load script page', function(done) {
+
+  it('should give /flowerCatalog.js file', done => {
     request(app.processRequest.bind(app))
       .get('/js/flowerCatalog.js')
-      .expect(200, done)
       .expect('Content-Type', 'application/javascript')
-      .expect(/hideForOneSec/);
+      .expect(/const hideForOneSec/)
+      .expect(200, done);
   });
-  it('should load flower image', function(done) {
+
+  it('should give /flowerCatalog.css', done => {
+    request(app.processRequest.bind(app))
+      .get('/style.css')
+      .expect('Content-Type', 'text/css')
+      .expect(200, done);
+  });
+
+  it('should give the image file when the request is for an image file', done => {
     request(app.processRequest.bind(app))
       .get('/images/freshorigins.jpg')
-      .expect(200, done)
-      .expect('Content-Type', 'image/jpg');
+      .expect('Content-Type', 'image/jpg')
+      .expect(200, done);
   });
-  it('should give not found page', function(done) {
+
+  it('should give the pdf file when the request is for pdf file', done => {
     request(app.processRequest.bind(app))
-      .get('/notExistingPage')
-      .expect(404, done)
+      .get('/pdf/Ageratum.pdf')
+      .expect('Content-Type', 'application/pdf')
+      .expect(200, done);
+  });
+
+  it('should give 404 for not existing file', done => {
+    request(app.processRequest.bind(app))
+      .get('/badPage')
       .expect('Content-Type', 'text/html')
-      .expect(/404 File not found/);
+      .expect(/404 File not found/)
+      .expect(404, done);
   });
-  it('should readBody', function(done) {
-    request(app.processRequest.bind(app))
-      .get('/')
-      .send('hello')
-      .expect(200, done)
-      .expect('Content-Type', 'text/html');
-  });
-  it('should load guest book page', function(done) {
+
+  it('should give guestBook page when the url is /guestBook.html', done => {
     request(app.processRequest.bind(app))
       .get('/GuestBook.html')
-      .expect(200, done)
-      .expect(/Leave a Comment/);
+      .expect('Content-Type', 'text/html')
+      .expect(/Leave a Comment/)
+      .expect(200, done);
   });
-  it('should get pdf of Abeliophyllum', function(done) {
+
+  it('should give guestBook for /guestBook.html', done => {
     request(app.processRequest.bind(app))
-      .get('/pdf/Abeliophyllum.pdf')
+      .get('/GuestBook.htmlhtml')
+      .expect('Content-Type', 'text/html')
+      .expect(/404 File not found/)
+      .expect(404, done);
+  });
+
+  it('should give the gif for /animated-flower-image-0021.gif', done => {
+    request(app.processRequest.bind(app))
+      .get('/images/animated-flower-image-0021.gif')
+      .expect('Content-Type', 'image/gif')
+      .expect(200, done);
+  });
+
+  it('should give the homePage and should send data through request', done => {
+    request(app.processRequest.bind(app))
+      .get('/')
+      .send('name=revathi&school=stAnthonys')
+      .expect('Content-Type', 'text/html')
       .expect(200, done)
-      .expect('Content-Type', 'application/pdf');
+      .expect(/Flower Catalog/);
   });
 });
 
-describe('PUT Not allowed method', function() {
-  it('should give not found page', function(done) {
+describe('Not Allowed Method', () => {
+  it('should give 405 status code when the method is not allowed', done => {
     request(app.processRequest.bind(app))
-      .put('/')
-      .expect(405, done)
-      .expect(/Method Not Allowed/);
+      .put('/GuestBook.html')
+      .expect(/Method Not Allowed/)
+      .expect(405, done);
   });
 });
 
-describe('GET Not found page', function() {
-  it('should give not found page', function(done) {
+describe('POST method', () => {
+  before(() => sinon.replace(fs, 'writeFileSync', () => {}));
+
+  it('should be able to handle post request', done => {
     request(app.processRequest.bind(app))
-      .get('/badFile')
-      .expect(404, done)
-      .expect('404 File not found');
+      .post('/saveComment.html')
+      .send('name=revathi&comment=nice')
+      .expect('Location', 'GuestBook.html')
+      .expect(302, done);
   });
+
+  after(() => sinon.restore());
 });
